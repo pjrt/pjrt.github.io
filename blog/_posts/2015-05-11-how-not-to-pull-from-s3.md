@@ -35,7 +35,7 @@ When the periods were as long as 3 hours, we figured something was wrong. At fir
 
 Using Ganglia graphs, we noticed that during that time only one of the boxes was actually doing any work (which explains why adding more boxes did nothing). This
 box was the driver for that given application. We went ahead and looked at the logs for the driver and noticed something peculiar
-(NOTE: The logs that EMR places in S3 are behind, so you would need to way for your application to finish before seeing the complete logs. If you want live logs you need to log into the machine).
+(NOTE: The logs that EMR places in S3 are behind, so you would need to wait for your application to finish before seeing the complete logs. If you want live logs you need to log into the machine).
 
 ```
 ...
@@ -52,7 +52,7 @@ box was the driver for that given application. We went ahead and looked at the l
 ```
 
 This command, listStatus, seems to be recursively calling each "folder" (each * in the glob syntax we passed into `textFiles`). In a normal file system, that glob syntax is fast enough to not care
-but S3 over the network and each * call does a "get all with prefix" call, which isn't negligible (remember, S3 is a key-value store. `2015/01/01` and `2015/01/02` do not live in the same place).
+but S3 is over the network and each * call does a "get all with prefix" call, which isn't negligible (remember, S3 is a key-value store. `2015/01/01` and `2015/01/02` do not live in the same place).
 To make matters worse, all of those calls are done sequentially in the driver before being passed to the workers. This means that as more and more data is inserted into S3, the longer
 it will take each job to actually start working.
 
