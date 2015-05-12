@@ -1,5 +1,5 @@
 ---
-title: How not to pull from S3 using Apache Spark
+title: How NOT to pull from S3 using Apache Spark
 subtitle: And how to actually do it
 layout: post
 ---
