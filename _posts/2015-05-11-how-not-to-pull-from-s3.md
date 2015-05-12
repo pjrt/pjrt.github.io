@@ -8,7 +8,7 @@ layout: post
 
 Apache Spark comes with the built-in functionality to pull data from S3 as it would with HDFS using the SparContext's `textFiles` method. `textFiles` allows for
 glob syntax, which allows you to pull hierarchal data as in `textFiles(s3n://bucket/2015/*/*)`.
-Though this seems great at first, there is an underlying issue with threating S3 as a HDFS; that is that S3 is not a file system.
+Though this seems great at first, there is an underlying issue with treating S3 as a HDFS; that is that S3 is not a file system.
 
 Though it is common to organize your S3 keys with slashes (`/`), and AWS S3 Console will present you said keys is a nice interface if you do, this is actually
 misleading. S3 isn't a file system, it is a key-value store. The keys `2015/05/01` and `2015/05/02` do not live in the "same place". They just happen to have
@@ -20,8 +20,8 @@ This causes issues when using Apache Spark's `textFiles` since it assumes that a
 ### The problem
 
 The Kinja Analytics team runs an Apache Spark cluster on AWS EMR continuously. As soon as a EMR step finishes, a job adds the next step. The jobs on the cluster
-pull data from S3 (placed there using our event stream), runs multiple computations on that data set and persist the data into Mysql table. The data in S3 is stored
-in chronological order `bucket/events/$year/$month/$day/$hour/$minute/data.txt`. Each `data.txt` file is about 10MB large.
+pull data from S3 (placed there using our event stream), runs multiple computations on that data set and persist the data into a MySQL table. The data in S3 is stored
+in chronological order as `bucket/events/$year/$month/$day/$hour/$minute/data.txt`. Each `data.txt` file is about 10MB large.
 
 Originally we were pulling the data using SparkContext's `textFiles` method as such `sc.textFiles(s3n://bucket/events/*/*/*/*/*/*)`. This worked fine at first but
 as the dataset grew we noticed that there would always be a large period of inactivity between jobs.
@@ -71,7 +71,7 @@ The solution is quite simple: do not use `textFiles`. Instead use [aws-sdj-java]
     request.setMaxKeys(pageLength)
     def s3 = new AmazonS3Client(new BasicAWSCredentials(key, secret))
 
-    val objs = s3.listObjects(request)
+    val objs = s3.listObjects(request) // Note that this method returns truncated data if longer than the "pageLength" above. You might need to deal with that.
     sc.parallelize(objs.getObjectSummaries.map(_.getKey).toList)
         .flatMap { key => Source.fromInputStream(s3.getObject(bucket, key).getObjectContent: InputStream).getLines }
 
