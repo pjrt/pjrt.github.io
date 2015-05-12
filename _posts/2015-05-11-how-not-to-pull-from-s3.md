@@ -58,7 +58,7 @@ it will take each job to actually start working.
 
 ### The Solution
 
-The solution is quite simple: do not use `textFiles`. Instead use [aws-sdj-java](https://github.com/aws/aws-sdk-java/blob/master/aws-java-sdk-s3/src/main/java/com/amazonaws/services/s3/AmazonS3Client.java) to manually get every key (maybe with a prefix) using AmazonS3Client, then parallelize the data pulling using SparkContext's `parrallelize` method and AmazonS3Client. 
+The solution is quite simple: do not use `textFiles`. Instead use the [AmazonS3Client](https://github.com/aws/aws-sdk-java/blob/master/aws-java-sdk-s3/src/main/java/com/amazonaws/services/s3/AmazonS3Client.java) to manually get every key (maybe with a prefix), then parallelize the data pulling using SparkContext's `parrallelize` method and said AmazonS3Client.
 
 ```scala
 
