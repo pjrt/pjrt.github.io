@@ -1,6 +1,7 @@
 ---
 title: How NOT to pull from S3 using Apache Spark
 subtitle: And how to actually do it
+tags: [apache spark, scala, S3, performance]
 layout: post
 ---
 
@@ -73,7 +74,7 @@ The solution is quite simple: do not use `textFiles`. Instead use the [AmazonS3C
 
     val objs = s3.listObjects(request) // Note that this method returns truncated data if longer than the "pageLength" above. You might need to deal with that.
     sc.parallelize(objs.getObjectSummaries.map(_.getKey).toList)
-        .flatMap { key => Source.fromInputStream(s3.getObject(bucket, key).getObjectContent: InputStream).getLines }
+        .flatMap { key => Source.fromInputStream(s3.getObject(bucket, key).getObjectContent).getLines }
 
 ```
 
