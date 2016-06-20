@@ -6,7 +6,7 @@ description: > # this means to ignore newlines until "baseurl:"
 github_username:  pjrt
 
 # Build settings
-markdown: redcarpet
+markdown: kramdown
 
 gems:
     - jekyll-sitemap
