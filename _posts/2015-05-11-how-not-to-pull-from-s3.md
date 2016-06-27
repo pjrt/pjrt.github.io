@@ -38,7 +38,7 @@ Using Ganglia graphs, we noticed that during that time only one of the boxes was
 box was the driver for that given application. We went ahead and looked at the logs for the driver and noticed something peculiar
 (NOTE: The logs that EMR places in S3 are behind, so you would need to wait for your application to finish before seeing the complete logs. If you want live logs you need to log into the machine).
 
-```
+~~~
 ...
 15/05/05 21:43:26 INFO s3n.S3NativeFileSystem: listStatus s3n://kinesis-click-stream-us-east-1-bucket-4myg4if5x7au/events/2015/03/21/20 with recursive false
 15/05/05 21:43:26 INFO s3n.S3NativeFileSystem: listStatus s3n://kinesis-click-stream-us-east-1-bucket-4myg4if5x7au/events/2015/03/21/21 with recursive false
@@ -50,7 +50,7 @@ box was the driver for that given application. We went ahead and looked at the l
 15/05/05 21:43:26 INFO s3n.S3NativeFileSystem: listStatus s3n://kinesis-click-stream-us-east-1-bucket-4myg4if5x7au/events/2015/03/21/00/05 with recursive false
 ...
 
-```
+~~~
 
 This command, listStatus, seems to be recursively calling each "folder" (each * in the glob syntax we passed into `textFiles`). In a normal file system, that glob syntax is fast enough to not care
 but S3 is over the network and each * call does a "get all with prefix" call, which isn't negligible (remember, S3 is a key-value store. `2015/01/01` and `2015/01/02` do not live in the same place).
@@ -61,7 +61,7 @@ it will take each job to actually start working.
 
 The solution is quite simple: do not use `textFiles`. Instead use the [AmazonS3Client](https://github.com/aws/aws-sdk-java/blob/master/aws-java-sdk-s3/src/main/java/com/amazonaws/services/s3/AmazonS3Client.java) to manually get every key (maybe with a prefix), then parallelize the data pulling using SparkContext's `parrallelize` method and said AmazonS3Client.
 
-```scala
+~~~ scala
 
     import com.amazonaws.services.s3._, model._
     import com.amazonaws.auth.BasicAWSCredentials
@@ -76,7 +76,7 @@ The solution is quite simple: do not use `textFiles`. Instead use the [AmazonS3C
     sc.parallelize(objs.getObjectSummaries.map(_.getKey).toList)
         .flatMap { key => Source.fromInputStream(s3.getObject(bucket, key).getObjectContent).getLines }
 
-```
+~~~
 
 Above, we get all of the keys for a bucket and a prefix (events) and parallelize all of the keys (give them to the workers/partitions) and make each worker pull the data for that one key.
 
