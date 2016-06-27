@@ -4,6 +4,8 @@ email: pedro@pjrt.co
 description: > # this means to ignore newlines until "baseurl:"
     Everyone else seems to have a cool github.io site, so why not?
 github_username:  pjrt
+twitter:
+    username: _pjrt
 
 # Build settings
 markdown: kramdown
