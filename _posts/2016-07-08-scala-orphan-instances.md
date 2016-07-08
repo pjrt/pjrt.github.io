@@ -169,7 +169,5 @@ check. Value classes can help avoid them all together, at the cost of having to
 wrap unwrap values. But these may be worth the cost as your codebase grows and
 your type classes become more complex.
 
--------------------------------------------------------------------------------
-
 [1]: http://homepages.inf.ed.ac.uk/jmorri14/d/final.pdf
 [typeclass-post]: http://www.cakesolutions.net/teamblogs/demystifying-implicits-and-typeclasses-in-scala
