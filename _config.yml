@@ -1,8 +1,8 @@
 # Site settings
-title: Can't Think of a Title
+title: CTT
 email: pedro@pjrt.co
 description: > # this means to ignore newlines until "baseurl:"
-    Everyone else seems to have a cool github.io site, so why not?
+    Everyone else seems to have a blog
 github_username:  pjrt
 twitter:
     username: _pjrt
