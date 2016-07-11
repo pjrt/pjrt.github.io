@@ -3,9 +3,10 @@ title: CTT
 email: pedro@pjrt.co
 description: > # this means to ignore newlines until "baseurl:"
     Everyone else seems to have a blog
+baseurl: ""
+url: "http://pjrt.github.io"
+twitter_username: _pjrt
 github_username:  pjrt
-twitter:
-    username: _pjrt
 
 # Build settings
 markdown: kramdown

@@ -61,22 +61,22 @@ it will take each job to actually start working.
 
 The solution is quite simple: do not use `textFiles`. Instead use the [AmazonS3Client](https://github.com/aws/aws-sdk-java/blob/master/aws-java-sdk-s3/src/main/java/com/amazonaws/services/s3/AmazonS3Client.java) to manually get every key (maybe with a prefix), then parallelize the data pulling using SparkContext's `parrallelize` method and said AmazonS3Client.
 
-~~~ scala
+{% highlight scala %}
 
-    import com.amazonaws.services.s3._, model._
-    import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.services.s3._, model._
+import com.amazonaws.auth.BasicAWSCredentials
 
-    val request = new ListObjectsRequest()
-    request.setBucketName(bucket)
-    request.setPrefix(prefix)
-    request.setMaxKeys(pageLength)
-    def s3 = new AmazonS3Client(new BasicAWSCredentials(key, secret))
+val request = new ListObjectsRequest()
+request.setBucketName(bucket)
+request.setPrefix(prefix)
+request.setMaxKeys(pageLength)
+def s3 = new AmazonS3Client(new BasicAWSCredentials(key, secret))
 
-    val objs = s3.listObjects(request) // Note that this method returns truncated data if longer than the "pageLength" above. You might need to deal with that.
-    sc.parallelize(objs.getObjectSummaries.map(_.getKey).toList)
-        .flatMap { key => Source.fromInputStream(s3.getObject(bucket, key).getObjectContent).getLines }
+val objs = s3.listObjects(request) // Note that this method returns truncated data if longer than the "pageLength" above. You might need to deal with that.
+sc.parallelize(objs.getObjectSummaries.map(_.getKey).toList)
+    .flatMap { key => Source.fromInputStream(s3.getObject(bucket, key).getObjectContent).getLines }
 
-~~~
+{% endhighlight %}
 
 Above, we get all of the keys for a bucket and a prefix (events) and parallelize all of the keys (give them to the workers/partitions) and make each worker pull the data for that one key.
 

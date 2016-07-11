@@ -47,26 +47,25 @@ packages: the package with `Foo`, the package with `DoFoo` and the package with
 the instance declaration (in the code above, we used objects to represent
 packages).
 
-{% highlight scala %}
+```scala
 import FooPackage._
 import DoFooPackage._
 import InstanceFoo._
 
 DoFoo[Foo].doSomething(Foo("Hello, World!"))
-{% endhighlight %}
+```
 
 Something you will notice from this style is that we can now define a different
 instance for Foo and import it in order to change `doSomething`'s behaviour.
 For example:
 
-{% highlight scala %}
+```scala
 object InstanceFooV2 {
   implicit object FooInst2 extends DoFoo[Foo] {
     def doSomething(f: Foo) = "I am a second version of Foo! I say: " + f.msg
   }
 }
-
-{% endhighlight %}
+```
 
 Now we can change the way the program works by simply changing an import! If
 the previous statement didn't scare you, it should have.
@@ -94,7 +93,7 @@ have given an implicit conflict compile error due to both of them being instance
 for the same exact type (Foo). However, this doesn't happen with overlapping
 instances.
 
-{% highlight scala %}
+```scala
 object ListInstance {
   implicit def listInstance[A](implicit ev: DoFoo[A]): DoFoo[List[A]] = new DoFoo[List[A]] {
     def doSomething(list: List[A]) =
@@ -108,7 +107,7 @@ object ListofFooInstance {
       "I am a specific instance of list of foos!\n\t" + listOfFoo.map(e => doSomething(e)).mkString("\n")
   }
 }
-{% endhighlight %}
+```
 
 Above, we made a generic instance for the container "List". As part of the
 instance definition, we stated that the inner type has to also define a `DoFoo`
@@ -135,7 +134,7 @@ different type, we can create a new, non-orphan instance for it. And because it
 is a simple type wrapper, we can quickly and easily switch from it to the
 underlying type:
 
-{% highlight scala %}
+```scala
 package NewFoo
 
 case class NewFoo(toFoo: Foo) extends AnyVal
@@ -146,7 +145,7 @@ object NewFoo {
       "A new message for Foo! It is: " + nf.toFoo.msg
   }
 }
-{% endhighlight %}
+```
 
 Of course, this means that in order to use this new functionality you have to
 wrap `Foo`, like so `doSomething(NewFoo(Foo("Hello")))`. However, it is now
@@ -168,6 +167,8 @@ grow unwieldy as your codebase grows and becomes more complex if not kept in
 check. Value classes can help avoid them all together, at the cost of having to
 wrap unwrap values. But these may be worth the cost as your codebase grows and
 your type classes become more complex.
+
+-------------------------------------------------------------------------------
 
 [1]: http://homepages.inf.ed.ac.uk/jmorri14/d/final.pdf
 [typeclass-post]: http://www.cakesolutions.net/teamblogs/demystifying-implicits-and-typeclasses-in-scala
