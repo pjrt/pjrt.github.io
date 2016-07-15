@@ -23,7 +23,6 @@ companion object nor the type class' companion object. For example:
 object FooPackage {
   case class Foo(msg: String)
 }
-
 object DoFooPackage {
   trait DoFoo[A] {
     def doSomething(f: A): String
@@ -32,7 +31,6 @@ object DoFooPackage {
     def apply[A](implicit ev: DoFoo[A]) = ev
   }
 }
-
 object InstanceFoo {
   implicit object FooInst extends DoFoo[Foo] {
     def doSomething(f: Foo) = "I am a Foo! My msg is: " + f.msg
