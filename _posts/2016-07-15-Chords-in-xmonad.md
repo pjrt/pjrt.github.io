@@ -67,3 +67,5 @@ Now you can just import the module as above and use it.
 [2]: http://xmonad.org/xmonad-docs/xmonad-contrib/XMonad-Actions-Submap.html
 [x-keys-repo]: https://github.com/pjrt/xmonad-keychord
 [pr]: https://github.com/xmonad/xmonad-contrib/pull/65
+[path-tree]: https://github.com/pjrt/PathTree/tree/master/src
+[xkey-mod]: https://github.com/pjrt/xmonad-keychord/tree/master/src
