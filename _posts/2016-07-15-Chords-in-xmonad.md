@@ -61,7 +61,9 @@ $ ls ~/.xmonad/lib
    Data/  XMonad/
 {% endhighlight %}
 
-Now you can just import the module as above and use it.
+Now you can just import the module as above and use it. If anyone knows of a
+better way to load third-party modules without going through contrib, let me
+know! Would be great if XMonad had a package manager like vim-plug.
 
 [1]: http://stackoverflow.com/a/32028957
 [2]: http://xmonad.org/xmonad-docs/xmonad-contrib/XMonad-Actions-Submap.html
