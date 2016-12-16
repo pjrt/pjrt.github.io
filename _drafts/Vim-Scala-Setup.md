@@ -10,6 +10,8 @@ co-workers are surprised when I can do a lot of things they can do in IntelliJ
 or something else. I've never documented my setup so I decided to finally put on
 paper (or rather, html) for other people who might be considering jumping ship.
 
+If you don't care about my life story, [skip down](#my-setup).
+
 # Why did I abandon IDEs?
 
 Now I haven't fully abandoned IDEs, I still use IntelliJ when playing around with
@@ -68,9 +70,31 @@ efficient Vim environment for Scala.
 
 ### vim-scala
 
-This was on a no-brainer, Vim doesn't support Scala (syntax, indentation, etc)
-by default, so you need a plugin. I personally use
+This is a no-brainer, Vim doesn't support Scala (syntax, indentation, etc)
+by default, so you need a plugin for it. I personally use
 [vim-scala](https://github.com/derekwyatt/vim-scala).
+
+### vim-fugitive
+
+Probably one of the best Vim plugins out there; if you are using Vim and git,
+then you should have [vim-fugitive](vf). Not only is it a great git wrapper but
+it will also help us deal with "project" issues later on.
 
 ### ctags
 
+Ctags makes one half of my "IDE". Without ctags you would need to search
+your codebase every time you want to jump to a type or class. You OS might
+already come with ctags installed, however I recommend [universal-ctags](https://github.com/universal-ctags/ctags).
+
+Vim already understands ctag files so no plugins needed there. However Vim
+needs to be told where to find said file. This setting is set by the variable
+`ctags` in Vim. To set this variable, simply do `set ctags=...` in your vimrc.
+
+But now we've reached an issue, where do we place our tags file? We could pick
+a global location somewhere in $HOME, and that would work, but I prefer [Tim
+Pope's approach](put-tim-pope-philosophy-here). With this approach, you place your
+tags file in `.git/ctags` and load it from there using [vim-fugitive](vf) (since
+it will load files found in `.git/`).
+
+
+vf: https://github.com/tpope/vim-fugitive
