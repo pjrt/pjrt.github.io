@@ -1,12 +1,18 @@
 ---
-title: Phantom and Existential types in Scala
+title: Existential types in Scala
 tags: [scala, types, existential, typeclass]
 layout: post
 ---
 
-There are many different ways to types in Scala [TODO]
+Type variables are a powerful piece of type-level programming. They can appear
+in a variety of forms and factors; phantoms and existential types being two
+cases. In this article we will be exploring existential types via a specific
+use case you may encounter in production code.
 
-# Type variables
+But before we can talk about existential types, we must talk about type variables
+in general.
+
+# Type Variables
 
 Normally, this is the form in which we see type variables:
 
@@ -14,8 +20,9 @@ Normally, this is the form in which we see type variables:
 type F[A] = SomeClass[A]
 {% endhighlight %}
 
-`A` is said to be a "type variable". A property of `F` is that it is fully
-dependent on the type of the data for `SomeClass`. For example:
+`A` is said to be a "type variable". Note that `A` appears on both sides of the
+equation: on `F` and on `SomeClass`. This means that `F` is fully dependent on
+the type of the data for `SomeClass`. For example, all of these are valid:
 
 {% highlight scala %}
 SomeClass("hello"): F[String]
@@ -23,13 +30,13 @@ SomeClass(1: Int): F[Int]
 SomeClass(true): F[Boolean]
 {% endhighlight %}
 
-So this means that I can't just, for example, do the following:
+While the following isn't:
 
 {% highlight scala %}
-SomeClass("hello"): F[Int]
+SomeClass("hello"): F[Int] // does not compile
 {% endhighlight %}
 
-The above won't work. Now lets expand this into something more concrete:
+Now lets expand this into something more concrete (with traits and classes):
 
 {% highlight scala %}
 sealed trait F[A]
@@ -40,85 +47,19 @@ SomeClass(1: Int): F[Int]
 SomeClass(true): F[Boolean]
 {% endhighlight %}
 
-This is pretty straight forward and you probably aren't impressed, so lets move
-on to the next kind; but before we start on existential, I want to show
-"phantom Types" since they are nicely dichotomic to existential types.
-
-# Phantom Types
-
-A phantom type refers to any type that cannot be created from data. They exist
-on their own. To show this, lets modify our example above:
-
-{% highlight scala %}
-type F[A] = SomeClass
-{% endhighlight %}
-
-Note that the `A` is now ONLY on the left side; it is no longer bound to
-whatever the type of data `SomeClass` takes. For example:
-
-{% highlight scala %}
-SomeClass("hello"): F[Boolean]
-SomeClass("hello"): F[Int]
-SomeClass("hello"): F[User]
-{% endhighlight %}
-
-It doesn't matter what the type of the data we put into `SomeClass`, the
-resulting type will be whatever we choose it to be.
-
-As we did before, lets expand it into a usable form:
-
-{% highlight scala %}
-sealed trait Phantom[A]
-
-final case class MkPhantom[A, B](b: B) extends Phantom[A]
-{% endhighlight %}
-
-Though `A` is part of the definition of `MkPhantom`, note that it is NOT
-dependent on the data passed to `MkPhantom`. This means we can still do what
-we did before:
-
-{% highlight scala %}
-MkPhantom("hello"): Phantom[Boolean]
-MkPhantom("hello"): Phantom[Int]
-MkPhantom("hello"): Phantom[User]
-{% endhighlight %}
-
-Now, `A` may not be dependent on any data **in `MkPhantom`**, but there is
-nothing stopping us from creating another case where **it is** dependent on
-data. For example:
-
-{% highlight scala %}
-sealed trait Phantom[A]
-
-final case class MkPhantom[A, B](b: B) extends Phantom[A]
-final case class MkPhantom2[A](a: A) extends Phantom[A]
-{% endhighlight %}
-
-This is the most common form of Phantoms we see in the wild. For example,
-`Option` is defined as such:
-
-{% highlight scala %}
-sealed trait Option[A]
-
-final case class None[A]() extends Option[A]
-final case class Some[A](a: A) extends Option[A]
-{% endhighlight %}
-
-Of course, this isn't the [true definition of `Option`](option-link) since it
-would be wasteful, but the concept still applies.
-
-`List` is another example: `Nil` being phantom while `Cons` isn't. There are
-other [more complex](tagged-link) examples but we won't be going into them.
-Instead, we will be moving on to Existential types.
+This is pretty straight forward and you probably aren't impressed, but it is
+important to see the basic example since existential types (and phantom ones)
+are a variation on it.
 
 # Existential Types
 
-As mentioned before, Existential types can be thought of as the opposite of a
-phantom type. This essentially means reversing where the type variable `A`
-appears.
+Existential types are like the normal type variables we saw above, except
+the variable only shows up on the right:
 
 {% highlight scala %}
-type F = SomeClass[A]
+type F[A] = SomeClass[A] // `A` appears on the left and right side, normal
+
+type F = SomeClass[A] forSome { type A } // `A` appears only on the right, existential
 {% endhighlight %}
 
 Now `A` only appears on the right side, which means that the final type, `F`,
@@ -130,7 +71,12 @@ SomeClass(1: Int): F
 SomeClass(user): F
 {% endhighlight %}
 
-Now lets expand it. Beware, this expansion isn't as clean as the previous ones:
+Side note: if `A` were to only appear on the left side, then `A` would be a
+Phantom type. We aren't covering those in this article though, so lets ignore
+them.
+
+Like above, lets now expand it. Beware, this expansion isn't as clean as the
+previous one:
 
 {% highlight scala %}
 sealed trait Existential {
@@ -141,9 +87,9 @@ sealed trait Existential {
 final case class MkEx[A](value: A) extends Existential { type Inner = A }
 {% endhighlight %}
 
-Here were are using path dependent types in order to create a better interface
-for our `Existential` trait. We could just have an empty trait but that would
-mean that we would need to case match `MkEx` whenever we wanted to access its
+Here we're using path dependent types in order to create a better interface for
+our `Existential` trait. We could just have an empty trait but that would mean
+that we would need to case match `MkEx` whenever we wanted to access its
 fields. However, the concept still holds and well as the property we described
 above:
 
@@ -153,8 +99,9 @@ MkEx(1: Int): Existential
 MkEx(user): Existential
 {% endhighlight %}
 
-We could think of `MkEx` as a type eraser: if you give it some data, it will
-erase the type while keeping the data.
+We could think of `MkEx` as a type eraser: it doesn't matter what type of data
+we choose to put into `MkEx`, it will erase the type and always return
+`Existential`.
 
 Time for a game, lets say you have some function that, when called,
 returns an `Existential`. What is the type of the inner `value` field?
@@ -164,12 +111,12 @@ val ex: Existential = getSomeExistential(...)
 ex.value: ???
 {% endhighlight %}
 
-The answer is...`ex.Inner` of course. But what is `Inner`? The answer to that
-is...we can't know. The original type defined in `MkEx` has been erased from
-compilation, never to be seen again. Now that's not to say that we have lost
-all information about it. We know that it *exists* (we have a
-reference to it via `ex.Inner`), hence why it is called "existential", but
-sadly that's pretty much all the information we know about it.
+The answer is...`ex.Inner` of course. But what is `ex.Inner`? The answer to
+that is...we can't know. The original type defined in `MkEx` has been erased
+from compilation, never to be seen again. Now that's not to say that we have
+lost all information about it. We know that it *exists* (we have a reference to
+it via `ex.Inner`), hence why it is called "existential", but sadly that's
+pretty much all the information we know about it.
 
 This means that, in its current form, `Existential` and `MkEx` are useless.
 We can't pass `ex.value` anywhere expect where `ex.Inner` is required, but
@@ -212,7 +159,7 @@ SomeOtherClass("hello"): Object
 Boolean.box(true): Object
 {% endhighlight %}
 
-the problem is that it is too wide, it encompasses ALL AnyRef types (which are
+The problem is that it is too wide, it encompasses ALL AnyRef types (which are
 all types expect AnyVals).
 
 This all means that we need to somehow "restrict" the number of types that are
@@ -307,8 +254,8 @@ sealed trait AnyAllowedType {
   val evidence: AllowedType[A]
 }
 
-final case class MkAnyAllowedType[B](value: A)(implicit val evidence: AllowedType[A])
-  extends AnyAllowedType { type A = B }
+final case class MkAnyAllowedType[A0](value: A0)(implicit val evidence: AllowedType[A0])
+  extends AnyAllowedType { type A = A0 }
 {% endhighlight %}
 
 This existential is similar to the `Existential` we defined above, except that
@@ -413,7 +360,7 @@ final case class MkTCBox[TC[_], B](value: A)(implicit val evidence: TC[A])
   extends TCBox[TC] { type A = B }
 {% endhighlight %}
 
-Now, instead of hard-coding it to AllowedType, we take the typeclass type as
+Now, instead of hard-coding it to AllowedType, we take the typeclass as a type
 `TC[_]`. We still take a `TC[A]` implicitly in `MkTCBox` along with the value.
 Note though that `TC[_]` isn't existential, nor phantom, it is just a common
 type variable.
@@ -435,3 +382,8 @@ Existential types don't seem that useful when first encountered, but they can
 be quite powerful when mixed with the correct restrictions. The use case I
 presented is one of the simpler uses but they can be as complex or as simple
 as your use case requires them to be.
+
+PS: you can find all the code I just wrote for TCBox here: https://gist.github.com/pjrt/269ddd1d8036374c648dbf6d52fb388f
+
+option-link: https://github.com/scala/scala/blob/v2.12.1/src/library/scala/Option.scala#L98
+tagged-link: https://github.com/scalaz/scalaz/blob/series/7.3.x/core/src/main/scala/scalaz/Tag.scala#L99
