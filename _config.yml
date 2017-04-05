@@ -14,5 +14,3 @@ markdown: kramdown
 gems:
     - jekyll-sitemap
     - jekyll-seo-tag
-
-theme: jekyll-theme-midnight
