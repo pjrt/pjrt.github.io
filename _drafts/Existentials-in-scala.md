@@ -387,7 +387,4 @@ be quite powerful when mixed with the correct restrictions. The use case we
 presented is one of the simpler uses but they can be as complex or as simple
 as your use case requires them to be.
 
-PS: you can find all the code we just wrote for TCBox here: https://gist.github.com/pjrt/269ddd1d8036374c648dbf6d52fb388f
-
-option-link: https://github.com/scala/scala/blob/v2.12.1/src/library/scala/Option.scala#L98
-tagged-link: https://github.com/scalaz/scalaz/blob/series/7.3.x/core/src/main/scala/scalaz/Tag.scala#L99
+PS: you can find all the code we just wrote for TCBox here: <https://gist.github.com/pjrt/269ddd1d8036374c648dbf6d52fb388f>
