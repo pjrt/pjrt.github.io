@@ -9,8 +9,8 @@ in a variety of forms and factors; phantoms and existential types being two
 cases. In this article we will be exploring existential types via a specific
 use case you may encounter in production code.
 
-But before we can talk about existential types, we must talk about type variables
-in general.
+But before we can talk about existential types, we must talk about type
+variables in general.
 
 # Type Variables
 
@@ -36,11 +36,11 @@ While the following isn't:
 SomeClass("hello"): F[Int] // does not compile
 {% endhighlight %}
 
-Now lets expand this into something more concrete (with traits and classes):
+Now let's expand this into something more concrete (with traits and classes):
 
 {% highlight scala %}
 sealed trait F[A]
-case class SomeClass[A](a: A) extends F[A]
+final case class SomeClass[A](a: A) extends F[A]
 
 SomeClass("hello"): F[String]
 SomeClass(1: Int): F[Int]
@@ -57,9 +57,9 @@ Existential types are like the normal type variables we saw above, except
 the variable only shows up on the right:
 
 {% highlight scala %}
-type F[A] = SomeClass[A] // `A` appears on the left and right side, normal
+type F[A] = SomeClass[A] // `A` appears on the left and right side, common case
 
-type F = SomeClass[A] forSome { type A } // `A` appears only on the right, existential
+type F = SomeClass[A] forSome { type A } // `A` appears only on the right, existential case
 {% endhighlight %}
 
 Now `A` only appears on the right side, which means that the final type, `F`,
@@ -72,10 +72,10 @@ SomeClass(user): F
 {% endhighlight %}
 
 Side note: if `A` were to only appear on the left side, then `A` would be a
-Phantom type. We aren't covering those in this article though, so lets ignore
+Phantom type. We aren't covering those in this article though, so let's ignore
 them.
 
-Like above, lets now expand it. Beware, this expansion isn't as clean as the
+Like before, let's now expand it. Beware, this expansion isn't as clean as the
 previous one:
 
 {% highlight scala %}
@@ -90,7 +90,7 @@ final case class MkEx[A](value: A) extends Existential { type Inner = A }
 Here we're using path dependent types in order to create a better interface for
 our `Existential` trait. We could just have an empty trait but that would mean
 that we would need to case match `MkEx` whenever we wanted to access its
-fields. However, the concept still holds and well as the property we described
+fields. However, the concept still holds and shares the properties we described
 above:
 
 {% highlight scala %}
@@ -111,19 +111,19 @@ val ex: Existential = getSomeExistential(...)
 ex.value: ???
 {% endhighlight %}
 
-The answer is...`ex.Inner` of course. But what is `ex.Inner`? The answer to
-that is...we can't know. The original type defined in `MkEx` has been erased
+The answer is `ex.Inner` of course. But what is `ex.Inner`? The answer to
+that is that we can't know. The original type defined in `MkEx` has been erased
 from compilation, never to be seen again. Now that's not to say that we have
 lost all information about it. We know that it *exists* (we have a reference to
 it via `ex.Inner`), hence why it is called "existential", but sadly that's
 pretty much all the information we know about it.
 
-This means that, in its current form, `Existential` and `MkEx` are useless.
-We can't pass `ex.value` anywhere expect where `ex.Inner` is required, but
-even `Inner` is pretty bare bones with no properties for us to use: so once we
-accept it in a function, what do we do with it? What can we do with it? Well
-nothing right now, but we could add *restrictions* to the type, which in terms
-would allows us to do something with it.
+This means that, in its current form, `Existential` and `MkEx` are useless. We
+can't pass `ex.value` anywhere expect where `ex.Inner` is required, but even
+`ex.Inner` is pretty bare bones with no properties for us to use: so once we
+accept it in a function, what do we do with it? Well nothing right now, but we
+could add *restrictions* to the type, which in terms would allow us to do
+something with it without knowing *what* it is.
 
 And here is where Existential types shine: they have the interesting property
 of unifying different types into a single one with shared restrictions. These
@@ -131,7 +131,7 @@ restrictions could be anything: from upper bounds to type classes or even a
 combination. To show this we will be creating a type-safe wrapper around an
 unsafe Java library.
 
-Lets say you have a Java library that contains the following signature:
+Let's say you have a Java library that contains the following signature:
 
 {% highlight scala %}
 def bind(objs: Object*): Statement
@@ -140,7 +140,7 @@ def bind(objs: Object*): Statement
 This signature isn't special, many SQL Java libraries have a method similar to
 it. Normally you would define some string with many question marks (?) followed
 by a call to a `bind` method that would bind the passed objects to the question
-marks. Like so:
+marks (hopefully sanitizing the input in the process). Like so:
 
 {% highlight sql %}
 SELECT * FROM table WHERE a = ? AND b = ?;
@@ -148,7 +148,7 @@ SELECT * FROM table WHERE a = ? AND b = ?;
 
 The problem though is that `Object` is a very general thing. Obviously, if we
 pass `bind(user)`, where `user` is some class we defined, that wouldn't work.
-However it would compile and crash at runtime. Additionally, a lot of these
+However, it would compile and crash at runtime. Additionally, a lot of these
 Java libraries are, well, for Java, so certain Scala types won't work either
 (eg: BigInt, Int, List). In fact, you *could* think of `Object` as an
 existential type.
@@ -159,20 +159,18 @@ SomeOtherClass("hello"): Object
 Boolean.box(true): Object
 {% endhighlight %}
 
-The problem is that it is too wide, it encompasses ALL AnyRef types (which are
-all types expect AnyVals).
+The problem is that it is too wide, it encompasses ALL types. This all means
+that we need to somehow "restrict" the number of types that are allowed to go
+into `bind`. This new bind, we shall call it `safeBind` will:
 
-This all means that we need to somehow "restrict" the number of types that are
-allowed to go into `bind`. This new bind, we shall call it `safeBind` will:
-
-* Convert types to their Java equivalent (BigInt -> Long, Int -> Integer)
+* Convert types to their Java counterpart (BigInt -> Long, Int -> Integer)
 * Fail to compile any nonsensical types (User, Profile)
 
 We aren't going to be making the length of parameters passed safe (that would
 require a lot more than existentials). Nor are we checking that the types
 passed match the expected types in the SQL query.
 
-`safeBind` will be defined something like this:
+`safeBind` will be defined something like so:
 
 {% highlight scala %}
 def safeBind(columns: AnyAllowedType*): Statement =
@@ -182,8 +180,8 @@ def safeBind(columns: AnyAllowedType*): Statement =
 Note that `safeBind` doesn't look that much different that `bind` except for
 `AnyAllowedType`. But before we can talk about `AnyAllowedType`, we need to
 define what types are allowed. For this, we will use a typeclass, called
-`AllowedType`, since they lend themselves well for defining a set of types that
-have a specific functionality.
+`AllowedType`, since they lend themselves well for defining a set of types
+unrelated types that have a specific functionality.
 
 This typeclass is defined as:
 
@@ -221,7 +219,6 @@ object AllowedType {
 {% endhighlight %}
 
 The stuff in the companion object are just helper functions we will use later.
-
 Now, lets define some types that will be allowed through:
 
 {% highlight scala %}
@@ -231,7 +228,7 @@ object AllowedType {
   implicit val boolInstance: AllowedType[Boolean] = instance(Boolean.box(_))
   implicit val instantInst: AllowedType[Instant] = instance(Date.from(_))
 
-  // For Option, we turn `None` in `null`; this is why we needed that `:> Null`
+  // For Option, we turn `None` into `null`; this is why we needed that `:> Null`
   // restriction
   implicit def optionInst[A](implicit ev: AllowedType[A]): AllowedType[Option[A]] =
     instance[Option[A], ev.JavaType](s => s.map(ev.toJavaType(_)).orNull)
@@ -239,13 +236,12 @@ object AllowedType {
 {% endhighlight %}
 
 This gives us our filter and converter: we can only call
-`AllowedType[A].toObject(a)` on values of a defined type. And if the type needs
-to be converted, it will be done so.
+`AllowedType[A].toObject(a)` if `A` implements our typeclass.
 
 Great, now we need to define `AnyAllowedType`. As we saw above, we want
-`AnyAllowedType` to behave somewhat like `Object`, but for our small universe
-of types. We can achieve this using a Existential type but with an evidence
-for our `AllowedType` typeclass:
+`AnyAllowedType` to behave somewhat like `Object`, but for our small set of
+types. We can achieve this using an Existential type but with an evidence for
+our `AllowedType` typeclass:
 
 {% highlight scala %}
 sealed trait AnyAllowedType {
@@ -259,7 +255,7 @@ final case class MkAnyAllowedType[A0](value: A0)(implicit val evidence: AllowedT
 {% endhighlight %}
 
 This existential is similar to the `Existential` we defined above, except that
-we are now asking for an evidence for `AllowedType[A]` and capturing as part
+we are now asking for an evidence for `AllowedType[A]` and capturing it as part
 of the trait. This means that, unlike before, we can't pass any random type
 anymore:
 
@@ -268,10 +264,10 @@ MkAnyAllowedType("Hello"): AnyAllowedType
 MkAnyAllowedType(1: Int): AnyAllowedType
 MkAnyAllowedType(Instant.now()): AnyAllowedType
 
-MkAnyAllowedType(user): AnyAllowedType // won't compile since we don't have an instance for User
+MkAnyAllowedType(user): AnyAllowedType // won't compile since we don't have an AllowedType instance for User
 {% endhighlight %}
 
-Great! Now we have our `AnyAllowedType` defined. Lets see it in action by
+Great! Now we have our `AnyAllowedType` defined. Let's see it in action by
 defining `safeBind`.
 
 {% highlight scala %}
@@ -292,9 +288,14 @@ Finally, when we go to use `safeBind`, we do as such:
 safeBind(MkAnyAllowedType(1), MkAnyAllowedType("Hello"), MkAnyAllowedType(Instant.now()))
 {% endhighlight %}
 
-And it works! We are essentially done now, developers just need to wrap their
-values in `MkAnyAllowedType` and the compiler will do the rest
-(or yell at them).
+And it works! But the following will not:
+
+{% highlight scala %}
+safeBind(MkAnyAllowedType(1), MkAnyAllowedType(user)) // Does not compile, no instance of AllowedType for User
+{% endhighlight %}
+
+We are essentially done now, we just need to wrap our values in
+`MkAnyAllowedType` and the compiler will do the rest (or yell).
 
 However, there are some extra tweaks we can make to make our interface better.
 
@@ -342,6 +343,8 @@ Now we can simply call:
 safeBind(1, "Hello", Instant.now(), true, …)
 {% endhighlight %}
 
+And passing `user` will fail, like before.
+
 ## Generalize AnyAllowedType
 
 When we created `AnyAllowedType`, we made it for the typeclass `AllowedType`.
@@ -360,10 +363,11 @@ final case class MkTCBox[TC[_], B](value: A)(implicit val evidence: TC[A])
   extends TCBox[TC] { type A = B }
 {% endhighlight %}
 
-Now, instead of hard-coding it to AllowedType, we take the typeclass as a type
-`TC[_]`. We still take a `TC[A]` implicitly in `MkTCBox` along with the value.
-Note though that `TC[_]` isn't existential, nor phantom, it is just a common
-type variable.
+Now, instead of hard-coding it to `AllowedType`, we take the typeclass as a
+type `TC[_]`. We still take a `TC[A]` implicitly in `MkTCBox` along with the
+value.  Note though that `TC[_]` isn't existential, nor phantom, it is just a
+common type variable. A `TCBox[TC]` is, essentially, a "TypeClass Box" for the
+typeclass "TC".
 
 Our implicit conversion can also be translated:
 
@@ -379,11 +383,11 @@ make everything we have written before keep working.
 # Conclusion
 
 Existential types don't seem that useful when first encountered, but they can
-be quite powerful when mixed with the correct restrictions. The use case I
+be quite powerful when mixed with the correct restrictions. The use case we
 presented is one of the simpler uses but they can be as complex or as simple
 as your use case requires them to be.
 
-PS: you can find all the code I just wrote for TCBox here: https://gist.github.com/pjrt/269ddd1d8036374c648dbf6d52fb388f
+PS: you can find all the code we just wrote for TCBox here: https://gist.github.com/pjrt/269ddd1d8036374c648dbf6d52fb388f
 
 option-link: https://github.com/scala/scala/blob/v2.12.1/src/library/scala/Option.scala#L98
 tagged-link: https://github.com/scalaz/scalaz/blob/series/7.3.x/core/src/main/scala/scalaz/Tag.scala#L99
