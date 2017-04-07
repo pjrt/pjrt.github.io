@@ -1,6 +1,6 @@
 ---
 title: Existential types in Scala
-tags: [scala, types, existential, typeclass]
+tags: [scala, types, existential, typeclass, typelevel]
 layout: post
 ---
 
@@ -103,7 +103,7 @@ We could think of `MkEx` as a type eraser: it doesn't matter what type of data
 we choose to put into `MkEx`, it will erase the type and always return
 `Existential`.
 
-Time for a game, lets say you have some function that, when called,
+Time for a game, let's say you have some function that, when called,
 returns an `Existential`. What is the type of the inner `value` field?
 
 {% highlight scala %}
@@ -219,7 +219,7 @@ object AllowedType {
 {% endhighlight %}
 
 The stuff in the companion object are just helper functions we will use later.
-Now, lets define some types that will be allowed through:
+Now let's define some types that will be allowed through:
 
 {% highlight scala %}
 object AllowedType {
