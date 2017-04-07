@@ -299,7 +299,7 @@ We are essentially done now, we just need to wrap our values in
 
 However, there are some extra tweaks we can make to make our interface better.
 
-## Making an AllowedType instance for AnyAllowedType
+# Making an AllowedType instance for AnyAllowedType
 
 You many have noticed that it is awkward to call functions in `ex.evidence`.
 
@@ -320,7 +320,7 @@ val ex: AnyAllowedType = …
 AllowedType[AnyAllowedType].toObject(ex)
 {% endhighlight %}
 
-## Using implicit conversions to avoid wrapping
+# Using implicit conversions to avoid wrapping
 
 Having to do this manual wrapping can become old fast:
 
@@ -345,7 +345,7 @@ safeBind(1, "Hello", Instant.now(), true, …)
 
 And passing `user` will fail, like before.
 
-## Generalize AnyAllowedType
+# Generalize AnyAllowedType
 
 When we created `AnyAllowedType`, we made it for the typeclass `AllowedType`.
 Does this mean that we need to make a new `AnyX` for every `X` typeclass we
